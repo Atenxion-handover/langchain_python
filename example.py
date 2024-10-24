@@ -14,7 +14,7 @@ retriever = get_retriever(
     hybrid_search=False,
 )
 
-llm = get_llm(model_name="gpt-4o-mini", temperature=0.5)
+llm = get_llm(model_name="open-mixtral-8x22b")
 chain = create_conversational_retrieval_chain(
     llm=llm, retriever=retriever, instruction=None
 )
