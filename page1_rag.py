@@ -28,7 +28,6 @@ from helpers.custom_types import (
 from typing import get_args
 import math
 import uuid
-from audio_recorder_streamlit import audio_recorder
 from streamlit_float import *
 from audiorecorder import audiorecorder
 
@@ -154,7 +153,7 @@ def invoke_chain(prompt, response_file_path=None):
         input=prompt,
         trace=False,
     )
-    
+
     answer = response["answer"]
     if response_file_path is not None:
         text_to_speech(text=answer, response_audio_file_path=response_file_path)

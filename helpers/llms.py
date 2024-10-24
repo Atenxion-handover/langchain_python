@@ -7,6 +7,7 @@ from typing import Optional
 from .config import Config
 from .custom_types import _LLM_TYPES
 from .model_mapping import _LLMS, _VENDORS
+from langchain_mistralai import ChatMistralAI
 
 
 def get_llm(
@@ -25,6 +26,14 @@ def get_llm(
             api_key=Config.OPENAI_API_KEY,
             max_retries=0,
             top_p=top_p,
+        )
+    elif llm_vendor == _VENDORS["mistral"]:
+        llm = ChatMistralAI(
+            model_name=model_name,
+            temperature=temperature,
+            api_key=Config.MISTRAL_API_KEY,
+            top_p=top_p,
+            max_retries=0,
         )
     elif llm_vendor == _VENDORS["googlegenai"]:
         llm = ChatGoogleGenerativeAI(

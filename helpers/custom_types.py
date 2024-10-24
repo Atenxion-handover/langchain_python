@@ -16,6 +16,7 @@ _LLM_TYPES = Literal[
     "meta-llama/Llama-2-70b-chat-hf",
     "meta-llama/Meta-Llama-3-8B-Instruct",
     "meta-llama/Meta-Llama-3-70B-Instruct",
+    "open-mixtral-8x22b",
 ]
 
 _EMBEDDING_TYPES = Literal[

@@ -5,6 +5,7 @@ _VENDORS = {
     "anthropic": "anthropic",
     "cohere": "cohere",
     "fastembed": "fastembed",
+    "mistral": "mistral",
     "elasticsearch": "elasticsearch",
 }
 
@@ -30,6 +31,7 @@ _LLMS = {
     "meta-llama/Llama-2-70b-chat-hf": _VENDORS["huggingface"],
     "meta-llama/Meta-Llama-3-8B-Instruct": _VENDORS["huggingface"],
     "meta-llama/Meta-Llama-3-70B-Instruct": _VENDORS["huggingface"],
+    "open-mixtral-8x22b": _VENDORS["mistral"],
 }
 
 _RERANKERS = {

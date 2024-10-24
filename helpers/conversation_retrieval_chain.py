@@ -4,25 +4,31 @@ from langchain.chains.retrieval import create_retrieval_chain
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.language_models import LanguageModelLike
 from langchain_core.retrievers import RetrieverLike
-from langchain_core.runnables import Runnable
-from typing import Any, Optional
+from typing import Any, Optional, Annotated, List
 from langfuse.callback import CallbackHandler
-from .custom_types import _LangfuseArgs, _ChainResult
-from .config import Config
 from langchain_core.outputs import LLMResult
 from langchain.callbacks.base import BaseCallbackHandler
-import pandas as pd
 from langchain_core.prompts import PromptTemplate
-from .config import Config
 from sqlalchemy import create_engine
 from langchain_community.utilities import SQLDatabase
 from langchain_community.tools.sql_database.tool import QuerySQLDataBaseTool
 from langchain.chains.sql_database.query import create_sql_query_chain
 from langchain_core.output_parsers import StrOutputParser
-from .retriever import get_retriever
-from langchain_core.runnables import Runnable, RunnablePassthrough, chain
+from langchain_core.runnables import (
+    Runnable,
+    RunnablePassthrough,
+    RunnableParallel,
+    chain,
+)
+from langchain_core.tools import Tool
 from operator import itemgetter
 from langchain.globals import set_debug
+from langchain_core.tools import tool
+import requests
+
+from .custom_types import _LangfuseArgs, _ChainResult
+from .config import Config
+from .retriever import get_retriever
 
 
 class LLMResultHandler(BaseCallbackHandler):
@@ -70,6 +76,7 @@ def create_conversational_retrieval_chain(
             ("human", "{input}"),
         ]
     )
+
     qa_chain = create_stuff_documents_chain(llm, qa_prompt, document_separator="\n")
 
     convo_qa_chain = create_retrieval_chain(history_aware_retriever, qa_chain)
@@ -107,16 +114,16 @@ def invoke_conversational_retrieval_chain(
     )
 
     answer = result["answer"]
-    # source_documents = [
-    #     {"page_content": doc.page_content, "source": doc.metadata["source"]}
-    #     for doc in result["context"]
-    # ]
+    source_documents = [
+        {"page_content": doc.page_content, "source": doc.metadata["source"]}
+        for doc in result["context"]
+    ]
 
     # token_usage = llm_result_handler.response
 
     output = {
         "answer": answer,
-        # "source_documents": source_documents,
+        "source_documents": source_documents,
         # "token_usage": token_usage,
     }
 
@@ -126,7 +133,7 @@ def invoke_conversational_retrieval_chain(
     return output
 
 
-def custom_chain(
+def __test_sql_chain(
     llm: LanguageModelLike, retriever: RetrieverLike, instruction: Optional[str] = None
 ) -> Runnable:
     engine = create_engine(Config.POSTGRES_CONNECTION_STRING)
@@ -220,51 +227,86 @@ def custom_chain(
     return final_chain
 
 
-def custom_invoke(
-    chain: Runnable,
-    input: str,
-    trace: bool = True,
-    langfuse_args: Optional[_LangfuseArgs] = None,
-) -> _ChainResult:
-    langfuse_handler = (
-        CallbackHandler(
-            public_key=Config.LANGFUSE_PUBLIC_KEY,
-            secret_key=Config.LANGFUSE_SECRET_KEY,
-            host=Config.LANGFUSE_BASEURL,
-            **langfuse_args if langfuse_args else {},
-        )
-        if trace
-        else None
+def custom_chain(
+    llm: LanguageModelLike,
+    retriever: RetrieverLike,
+    tools: Optional[List[Tool]] = None,
+    instruction: Optional[str] = None,
+) -> Runnable:
+
+    contextualize_instructions = """Convert the latest user question into a standalone question given the chat history. Don't answer the question, return the question and nothing else (no descriptive text)."""
+    contextualize_prompt = ChatPromptTemplate.from_messages(
+        [
+            ("system", contextualize_instructions),
+            ("placeholder", "{chat_history}"),
+            ("human", "{question}"),
+        ]
+    )
+    contextualize_question = contextualize_prompt | llm | StrOutputParser()
+
+    qa_instructions = (
+        instruction + """Use tool calls if necessary. \n\n{context}."""
+        if instruction
+        else """ Use tool calls if necessary. Answer the user question given the following context:\n\n{context}."""
+    )
+    qa_prompt = ChatPromptTemplate.from_messages(
+        [("system", qa_instructions), ("human", "{question}")]
     )
 
-    llm_result_handler = LLMResultHandler()
-    result = chain.invoke(
-        {"question": input, "chat_history": []},
-        config={
-            "callbacks": (
-                [llm_result_handler, langfuse_handler]
-                if langfuse_handler
-                else [llm_result_handler]
+    llm_with_tools = llm.bind_tools(tools)
+
+    @chain
+    def tool_call(input_: dict) -> Runnable:
+        llm_result = input_.get("llm_result")
+        print(llm_result)
+        if llm_result.tool_calls:
+            test_instruction = """Answer the question using the tool response."""
+            test_prompt = ChatPromptTemplate.from_messages(
+                [("system", test_instruction), ("human", "{question}")]
             )
-        },
+            test_prompt.messages.append(llm_result)
+            for tool_call in llm_result.tool_calls:
+                selected_tool = next(
+                    temp_tool
+                    for temp_tool in tools
+                    if temp_tool.name == tool_call["name"]
+                )
+                tool_response = selected_tool.invoke(tool_call)
+                test_prompt.messages.append(tool_response)
+            return {"question": itemgetter("question")} | test_prompt | llm_with_tools
+
+        else:
+            return llm_result
+
+    @chain
+    def contextualize_if_needed(input_: dict) -> Runnable:
+        if input_.get("chat_history"):
+            return contextualize_question
+        else:
+            return RunnablePassthrough() | itemgetter("question")
+
+    # Pass input query to retriever
+    retrieve_docs_chain = itemgetter("question") | retriever
+
+    def format_docs(docs):
+        return "".join(doc.page_content for doc in docs)
+
+    formatted_prompt = {
+        "question": itemgetter("question") | RunnablePassthrough(),
+        "context": lambda x: format_docs(x["context"]),
+    } | RunnableParallel(prompt=qa_prompt, question=itemgetter("question"))
+
+    llm_result_chain = formatted_prompt | RunnableParallel(
+        llm_result=itemgetter("prompt") | llm_with_tools,
+        question=itemgetter("question"),
     )
 
-    answer = result
-    # answer = result["answer"]
-    # source_documents = [
-    #     {"page_content": doc.page_content, "source": doc.metadata["source"]}
-    #     for doc in result["context"]
-    # ]
+    output_chain = llm_result_chain | tool_call | StrOutputParser()
 
-    # token_usage = llm_result_handler.response
+    final_chain = (
+        RunnablePassthrough.assign(question=contextualize_if_needed)
+        .assign(context=retrieve_docs_chain)
+        .assign(answer=output_chain)
+    )
 
-    output = {
-        "answer": answer,
-        # "source_documents": source_documents,
-        # "token_usage": token_usage,
-    }
-
-    if langfuse_handler:
-        langfuse_handler.flush()
-
-    return output
+    return final_chain

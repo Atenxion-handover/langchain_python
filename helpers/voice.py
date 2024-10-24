@@ -2,13 +2,17 @@ from pathlib import Path
 from openai import OpenAI
 from .config import Config
 from pydub import AudioSegment
+import google.generativeai as genai
+from pathlib import Path
+from typing import Any
 
-
+genai.configure(api_key=Config.GOOGLE_API_KEY)
 openai_client = OpenAI(api_key=Config.OPENAI_API_KEY)
 
 
-def speech_to_text(audio_file_path):
+def speech_to_text(audio_file_path: str) -> str:
     path = Path(audio_file_path).resolve()
+
     chunk_length = 10 * 60 * 1000
     audio = AudioSegment.from_file(path)
     chunks = []
@@ -31,7 +35,7 @@ def speech_to_text(audio_file_path):
     return "".join(transcriptions)
 
 
-def text_to_speech(text, response_audio_file_path):
+def text_to_speech(text: str, response_audio_file_path: str) -> Any:
     max_length = 4096
     chunks = [text[i : i + max_length] for i in range(0, len(text), max_length)]
     audio_files = []
@@ -55,3 +59,18 @@ def text_to_speech(text, response_audio_file_path):
     combined_file_path = Path(response_audio_file_path)
     combined.export(combined_file_path, format="mp3")
     return combined_file_path
+
+
+def gemini_voice(audio_file_path):
+    model = genai.GenerativeModel("gemini-1.5-flash")
+    prompt = "Transcribe the audio with correct punctuation."
+    result = model.generate_content(
+        [
+            prompt,
+            {
+                "mime_type": "audio/mp3",
+                "data": Path(audio_file_path).read_bytes(),
+            },
+        ]
+    )
+    return result.text

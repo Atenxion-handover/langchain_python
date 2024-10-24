@@ -66,6 +66,7 @@ def get_vector_store_instance(
                 index_name=index_name,
                 strategy=SparseVectorStrategy(model_id=sparse_model),
             )
+
         elif hybrid_search_type == "dense_sparse":
             dense_vector_store = ElasticsearchStore(
                 es_cloud_id=Config.ELASTIC_CLOUD_ID,
