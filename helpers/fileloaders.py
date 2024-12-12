@@ -13,7 +13,6 @@ def load_csv(path: str) -> List[Document]:
 def load_excel(path: str) -> List[Document]:
     loader = UnstructuredExcelLoader(file_path=path, mode="elements")
     data = loader.load()
-    print(data)
     docs = []
     for doc in data:
         metadata = {

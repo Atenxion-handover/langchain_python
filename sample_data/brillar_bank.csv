@@ -1,0 +1,101 @@
+Customer Name,Fixed Deposit Type,Amount (RM),Term (Months),Customer ID,Customer Age,Customer Location,Customer Phone Number
+John Doe,Fixed deposit,50000,12,1001,45,Kuala Lumpur,012-3456789
+Jane Smith,E-Fixed Deposit,30000,24,1002,32,George Town,011-2345678
+Alice Tan,Flexi Fixed Deposit,100000,12,1003,40,Ipoh,010-1234567
+Michael Lim,Junior Fixed Deposit,20000,12,1004,18,Shah Alam,017-9876543
+Emily Wong,Senior Saver Flexi Fixed Deposit,150000,60,1005,68,Johor Bahru,018-8765432
+David Lee,Foreign Currency Fixed Deposit,5000,6,1006,55,Malacca,016-7654321
+Sophia Ng,Fixed deposit,75000,36,1007,29,Kota Kinabalu,019-6543210
+Benjamin Chua,E-Fixed Deposit,25000,12,1008,34,Kuching,014-5432109
+Chloe Tay,Flexi Fixed Deposit,125000,12,1009,42,Kuantan,013-4321098
+Lucas Teo,Junior Fixed Deposit,10000,6,1010,17,Seremban,012-3210987
+Ethan Chan,Senior Saver Flexi Fixed Deposit,200000,60,1011,70,Alor Setar,011-2109876
+Grace Ong,Foreign Currency Fixed Deposit,8000,9,1012,60,Sibu,010-1098765
+Ryan Lau,Fixed deposit,55000,18,1013,39,Melaka,012-2345678
+Karen Lee,E-Fixed Deposit,40000,24,1014,31,Kuala Lumpur,011-3456789
+Dylan Tan,Flexi Fixed Deposit,95000,12,1015,46,George Town,010-4567890
+Rachel Ng,Junior Fixed Deposit,15000,12,1016,18,Ipoh,017-5678901
+Aaron Lim,Senior Saver Flexi Fixed Deposit,175000,60,1017,65,Shah Alam,018-6789012
+Samantha Goh,Foreign Currency Fixed Deposit,7000,6,1018,57,Johor Bahru,016-7890123
+Felix Wong,Fixed deposit,90000,36,1019,30,Malacca,019-8901234
+Natalie Chai,E-Fixed Deposit,32000,12,1020,33,Kota Kinabalu,014-9012345
+Oscar Ho,Flexi Fixed Deposit,110000,12,1021,44,Kuching,013-0123456
+Isabella Foo,Junior Fixed Deposit,18000,6,1022,17,Kuantan,012-1234567
+Ivan Chin,Senior Saver Flexi Fixed Deposit,155000,60,1023,69,Seremban,011-2345678
+Sophia Lim,Foreign Currency Fixed Deposit,9000,9,1024,59,Alor Setar,010-3456789
+Jacob Teh,Fixed deposit,70000,12,1025,36,Sibu,012-4567890
+Liam Yeo,E-Fixed Deposit,35000,24,1026,28,Melaka,011-5678901
+Maya Wong,Flexi Fixed Deposit,115000,12,1027,41,Kuala Lumpur,010-6789012
+Isaac Ang,Junior Fixed Deposit,12000,12,1028,18,George Town,017-7890123
+Olivia Tan,Senior Saver Flexi Fixed Deposit,160000,60,1029,67,Ipoh,018-8901234
+Grace Chan,Foreign Currency Fixed Deposit,6000,6,1030,54,Shah Alam,016-9012345
+Noah Sim,Fixed deposit,85000,36,1031,31,Johor Bahru,019-1234567
+Zoe Ng,E-Fixed Deposit,28000,12,1032,35,Malacca,014-2345678
+Julian Lee,Flexi Fixed Deposit,105000,12,1033,43,Kota Kinabalu,013-3456789
+Hannah Tay,Junior Fixed Deposit,19000,6,1034,18,Kuching,012-4567890
+Nathaniel Lim,Senior Saver Flexi Fixed Deposit,185000,60,1035,71,Kuantan,011-5678901
+Ella Low,Foreign Currency Fixed Deposit,9500,9,1036,61,Seremban,010-6789012
+Cody Tan,Fixed deposit,65000,18,1037,38,Alor Setar,012-7890123
+Laila Yew,E-Fixed Deposit,31000,24,1038,29,Sibu,011-8901234
+Theo Ting,Flexi Fixed Deposit,120000,12,1039,47,Melaka,010-9012345
+Alicia Ho,Junior Fixed Deposit,13000,12,1040,18,Kuala Lumpur,017-0123456
+Callum Goh,Senior Saver Flexi Fixed Deposit,140000,60,1041,66,George Town,018-1234567
+Leah Tan,Foreign Currency Fixed Deposit,7200,6,1042,57,Ipoh,016-2345678
+Caleb Lau,Fixed deposit,75000,36,1043,32,Shah Alam,019-3456789
+Riley Lim,E-Fixed Deposit,29000,12,1044,37,Johor Bahru,014-4567890
+Violet Chng,Flexi Fixed Deposit,130000,12,1045,45,Malacca,013-5678901
+William Chan,Junior Fixed Deposit,16500,6,1046,14,Kota Kinabalu,012-6789012
+Mila Tay,Senior Saver Flexi Fixed Deposit,170000,60,1047,68,Kuching,011-7890123
+Jaxon Sim,Foreign Currency Fixed Deposit,8800,9,1048,58,Kuantan,010-8901234
+Sophie Tan,Fixed deposit,67000,12,1049,35,Seremban,012-9012345
+Henry Ong,E-Fixed Deposit,33000,24,1050,31,Alor Setar,011-3456789
+Harper Yip,Flexi Fixed Deposit,115000,12,1051,42,Sibu,010-4567890
+Levi Koh,Junior Fixed Deposit,14500,12,1052,16,Melaka,017-5678901
+Grace Lee,Senior Saver Flexi Fixed Deposit,165000,60,1053,64,Kuala Lumpur,018-6789012
+Aiden Foo,Foreign Currency Fixed Deposit,8000,6,1054,56,George Town,016-7890123
+Aria Ng,Fixed deposit,82000,36,1055,33,Ipoh,019-8901234
+Anthony Ho,E-Fixed Deposit,36000,12,1056,36,Shah Alam,014-9012345
+Natalie Tan,Flexi Fixed Deposit,135000,12,1057,50,Johor Bahru,013-0123456
+Zachary Chen,Junior Fixed Deposit,15500,6,1058,18,Malacca,012-1234567
+Megan Chia,Senior Saver Flexi Fixed Deposit,190000,60,1059,72,Kota Kinabalu,011-2345678
+Liam Ong,Foreign Currency Fixed Deposit,9700,9,1060,62,Kuching,010-3456789
+Chloe Goh,Fixed deposit,70000,12,1061,43,Kuantan,012-4567890
+Ella Loh,E-Fixed Deposit,27000,24,1062,34,Seremban,011-5678901
+Ryan Yow,Flexi Fixed Deposit,125000,12,1063,41,Alor Setar,010-6789012
+Samantha Chia,Junior Fixed Deposit,11000,12,1064,16,Sibu,017-7890123
+Oliver Chan,Senior Saver Flexi Fixed Deposit,180000,60,1065,70,Melaka,018-8901234
+Ava Lim,Foreign Currency Fixed Deposit,7800,6,1066,55,Kuala Lumpur,016-9012345
+Marcus Teo,Fixed deposit,88000,36,1067,37,George Town,019-0123456
+Isabella Lee,E-Fixed Deposit,41000,12,1068,30,Ipoh,014-1234567
+Wyatt Tan,Flexi Fixed Deposit,95000,12,1069,49,Shah Alam,013-2345678
+Scarlett Lau,Junior Fixed Deposit,16000,6,1070,18,Johor Bahru,012-3456789
+Lucas Sim,Senior Saver Flexi Fixed Deposit,170000,60,1071,67,Malacca,011-4567890
+Lillian Chng,Foreign Currency Fixed Deposit,9600,9,1072,59,Kota Kinabalu,010-5678901
+Mason Yip,Fixed deposit,65000,18,1073,45,Kuching,012-6789012
+Evelyn Ng,E-Fixed Deposit,34000,24,1074,28,Kuantan,011-7890123
+Noah Yow,Flexi Fixed Deposit,144000,12,1075,48,Seremban,010-8901234
+Bella Ting,Junior Fixed Deposit,12000,12,1076,15,Alor Setar,017-9012345
+Riley Ong,Senior Saver Flexi Fixed Deposit,172000,60,1077,66,Sibu,018-0123456
+Daniel Ho,Foreign Currency Fixed Deposit,8200,6,1078,53,Melaka,016-1234567
+Mia Lee,Fixed deposit,91000,36,1079,34,Kuala Lumpur,019-2345678
+Ethan Tan,E-Fixed Deposit,38000,12,1080,32,George Town,014-3456789
+Zoe Teh,Flexi Fixed Deposit,155000,12,1081,46,Ipoh,013-4567890
+Logan Yeo,Junior Fixed Deposit,13500,6,1082,10,Shah Alam,012-5678901
+Avery Low,Senior Saver Flexi Fixed Deposit,195000,60,1083,73,Johor Bahru,011-6789012
+Elijah Lau,Foreign Currency Fixed Deposit,8400,9,1084,60,Malacca,010-7890123
+Ruby Ng,Fixed deposit,78000,12,1085,29,Kota Kinabalu,012-8901234
+Grayson Chia,E-Fixed Deposit,26000,24,1086,35,Kuching,011-9012345
+Madison Sim,Flexi Fixed Deposit,135000,12,1087,44,Kuantan,010-0123456
+Daniel Teo,Junior Fixed Deposit,14500,12,1088,13,Seremban,017-1234567
+Scarlett Yew,Senior Saver Flexi Fixed Deposit,165000,60,1089,64,Alor Setar,018-2345678
+Joshua Lim,Foreign Currency Fixed Deposit,6700,6,1090,52,Sibu,016-3456789
+Alexa Ong,Fixed deposit,54000,18,1091,38,Melaka,019-4567890
+Ryan Ang,E-Fixed Deposit,27000,24,1092,27,Kuala Lumpur,014-5678901
+Jasmine Chin,Flexi Fixed Deposit,146000,12,1093,51,George Town,013-6789012
+Andrew Chan,Junior Fixed Deposit,17000,12,1094,11,Ipoh,012-7890123
+Sophia Goh,Senior Saver Flexi Fixed Deposit,182000,60,1095,68,Shah Alam,011-8901234
+Caroline Ting,Foreign Currency Fixed Deposit,9500,9,1096,58,Johor Bahru,010-9012345
+Wyatt Wong,Fixed deposit,83000,36,1097,40,Malacca,012-0123456
+Olivia Foo,E-Fixed Deposit,39500,12,1098,33,Kota Kinabalu,011-1234567
+Liam Lee,Flexi Fixed Deposit,140000,12,1099,47,Kuching,010-2345678
+Ella Tan,Junior Fixed Deposit,12500,6,1100,8,Kuantan,017-3456789

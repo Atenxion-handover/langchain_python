@@ -29,6 +29,7 @@ import requests
 from .custom_types import _LangfuseArgs, _ChainResult
 from .config import Config
 from .retriever import get_retriever
+from sqlalchemy import Engine
 
 
 class LLMResultHandler(BaseCallbackHandler):
@@ -133,10 +134,12 @@ def invoke_conversational_retrieval_chain(
     return output
 
 
-def __test_sql_chain(
-    llm: LanguageModelLike, retriever: RetrieverLike, instruction: Optional[str] = None
+def sql_chain_with_embedding_router(
+    llm: LanguageModelLike,
+    retriever: RetrieverLike,
+    sql_engine: Engine,
+    instruction: Optional[str] = None,
 ) -> Runnable:
-    engine = create_engine(Config.POSTGRES_CONNECTION_STRING)
 
     sql_instruction = """
         You are a PostgreSQL expert. Given an input question, first create a syntactically correct PostgreSQL query, and then ONLY return the plain query. No markdown format or explanation is needed.
@@ -152,7 +155,7 @@ def __test_sql_chain(
         """
     sql_prompt = PromptTemplate.from_template(template=sql_instruction)
 
-    db = SQLDatabase(engine=engine)
+    db = SQLDatabase(engine=sql_engine)
 
     write_query = create_sql_query_chain(llm, db, prompt=sql_prompt)
     execute_query = QuerySQLDataBaseTool(db=db)
@@ -182,11 +185,121 @@ def __test_sql_chain(
         [("system", qa_instructions), ("human", "{question}")]
     )
 
-    retriever = get_retriever(
+    routing_retriever = get_retriever(
         index_name="test",
         embedding_model="text-embedding-3-large",
         dimension=256,
         vector_db="qdrant",
+        top_k=1,
+    )
+
+    @chain
+    def contextualize_if_needed(input_: dict) -> Runnable:
+        if input_.get("chat_history"):
+            return contextualize_question
+        else:
+            return RunnablePassthrough() | itemgetter("question")
+
+    @chain
+    def data_routing(input_: dict) -> Runnable:
+        print("Embedding Router.")
+        doc = routing_retriever.invoke(input_["question"])
+        if doc[0].metadata.get("search_type"):
+            print("Routing to SQL Chain.")
+            return (
+                RunnablePassthrough.assign(query=write_query).assign(
+                    result=itemgetter("query") | execute_query
+                )
+                | sql_prompt
+            )
+        else:
+            print("Routing to RAG Chain.")
+            return {
+                "question": itemgetter("question"),
+                "context": itemgetter("question") | retriever,
+            } | qa_prompt
+
+    @chain
+    def data_routing_with_llm(input_: dict) -> Runnable:
+        router_prompt = """Analyze the question and decide that if the question can be answered from a structured data or unstructured data. You should only response STRUCTURED or UNSTRUCTURED.
+
+        Structured data schema:
+        [Customer Name, Fixed Deposit Type, Amount (RM), Term (Months), Customer Age, Customer Location, Customer Phone Number]
+        
+        Question: {question}
+        Output: 
+        """
+        router_template = ChatPromptTemplate.from_template(router_prompt)
+        router_chain = router_template | llm | StrOutputParser()
+        if router_chain.invoke(input_["question"]) == "STRUCTURED":
+            return (
+                RunnablePassthrough.assign(query=write_query).assign(
+                    result=itemgetter("query") | execute_query
+                )
+                | sql_prompt
+            )
+        else:
+            return {
+                "question": itemgetter("question"),
+                "context": itemgetter("question") | retriever,
+            } | qa_prompt
+
+    final_chain = (
+        {"question": contextualize_if_needed} | data_routing | llm | StrOutputParser()
+    )
+
+    return final_chain
+
+
+def sql_chain_with_llm_router(
+    llm: LanguageModelLike,
+    retriever: RetrieverLike,
+    sql_engine: Engine,
+    instruction: Optional[str] = None,
+) -> Runnable:
+
+    sql_instruction = """
+        You are a PostgreSQL expert. Given an input question, first create a syntactically correct PostgreSQL query, and then ONLY return the plain query. No markdown format or explanation is needed.
+        Unless the user specifies in the question a specific number of examples to obtain, query for at most {top_k} results using the LIMIT clause as per PostgreSQL. You can order the results to return the most informative data in the database.
+        Never query for all columns from a table. You must query only the columns that are needed to answer the question. Wrap each column name in double quotes (") to denote them as delimited identifiers.
+        Pay attention to use only the column names you can see in the tables below. Be careful to not query for columns that do not exist. Also, pay attention to which column is in which table.
+        Pay attention to use CURRENT_DATE function to get the current date, if the question involves "today".
+
+        Only use the following tables:
+        {table_info}
+
+        Question: {input}
+        """
+    sql_prompt = PromptTemplate.from_template(template=sql_instruction)
+
+    db = SQLDatabase(engine=sql_engine)
+
+    write_query = create_sql_query_chain(llm, db, prompt=sql_prompt)
+    execute_query = QuerySQLDataBaseTool(db=db)
+    sql_prompt = PromptTemplate.from_template(
+        """Given the following user question, corresponding SQL query, and SQL result, answer the user question. You don't need to tell the user that you are using SQL.
+
+    Question: {question}
+    SQL Query: {query}
+    SQL Result: {result}
+    Answer: """
+    )
+
+    contextualize_instructions = """Convert the latest user question into a standalone question given the chat history. Don't answer the question, return the question and nothing else (no descriptive text)."""
+    contextualize_prompt = ChatPromptTemplate.from_messages(
+        [
+            ("system", contextualize_instructions),
+            ("placeholder", "{chat_history}"),
+            ("human", "{question}"),
+        ]
+    )
+    contextualize_question = contextualize_prompt | llm | StrOutputParser()
+
+    qa_instructions = (
+        """Answer the user question given the following context:\n\n{context}."""
+    )
+    qa_prompt = ChatPromptTemplate.from_messages(
+        [("system", qa_instructions), ("human", "{question}")]
     )
 
     routing_retriever = get_retriever(
@@ -220,8 +333,165 @@ def __test_sql_chain(
                 "context": itemgetter("question") | retriever,
             } | qa_prompt
 
+    @chain
+    def data_routing_with_llm(input_: dict) -> Runnable:
+        print("LLM Router.")
+        router_prompt = """Analyze the question and decide that if the question can be answered from a structured data or unstructured data. You should only response STRUCTURED or UNSTRUCTURED.
+
+        Structured data schema:
+        [Customer Name, Fixed Deposit Type, Amount (RM), Term (Months), Customer Age, Customer Location, Customer Phone Number]
+        
+        Question: {question}
+        Output: 
+        """
+        router_template = ChatPromptTemplate.from_template(router_prompt)
+        router_chain = router_template | llm | StrOutputParser()
+        if router_chain.invoke(input_["question"]) == "STRUCTURED":
+            print("Routing to SQL Chain.")
+            return (
+                RunnablePassthrough.assign(query=write_query).assign(
+                    result=itemgetter("query") | execute_query
+                )
+                | sql_prompt
+            )
+        else:
+            print("Routing to RAG Chain.")
+            return {
+                "question": itemgetter("question"),
+                "context": itemgetter("question") | retriever,
+            } | qa_prompt
+
     final_chain = (
-        {"question": contextualize_if_needed} | data_routing | llm | StrOutputParser()
+        {"question": contextualize_if_needed}
+        | data_routing_with_llm
+        | llm
+        | StrOutputParser()
+    )
+
+    return final_chain
+
+
+def sql_chain_with_two_store(
+    llm: LanguageModelLike,
+    retriever: RetrieverLike,
+    sql_engine: Engine,
+    instruction: Optional[str] = None,
+) -> Runnable:
+
+    sql_instruction = """
+        You are a PostgreSQL expert. Given an input question, first create a syntactically correct PostgreSQL query, and then ONLY return the plain query. No markdown format or explanation is needed.
+        Unless the user specifies in the question a specific number of examples to obtain, query for at most {top_k} results using the LIMIT clause as per PostgreSQL. You can order the results to return the most informative data in the database.
+        Never query for all columns from a table. You must query only the columns that are needed to answer the question. Wrap each column name in double quotes (") to denote them as delimited identifiers.
+        Pay attention to use only the column names you can see in the tables below. Be careful to not query for columns that do not exist. Also, pay attention to which column is in which table.
+        Pay attention to use CURRENT_DATE function to get the current date, if the question involves "today".
+
+        Only use the following tables:
+        {table_info}
+
+        Question: {input}
+        """
+    sql_prompt = PromptTemplate.from_template(template=sql_instruction)
+
+    db = SQLDatabase(engine=sql_engine)
+
+    write_query = create_sql_query_chain(llm, db, prompt=sql_prompt)
+    execute_query = QuerySQLDataBaseTool(db=db)
+    sql_prompt = PromptTemplate.from_template(
+        """Given the following user question, corresponding SQL query, and SQL result, answer the user question. You don't need to tell the user that you are using SQL.
+
+    Question: {question}
+    SQL Query: {query}
+    SQL Result: {result}
+    Answer: """
+    )
+
+    contextualize_instructions = """Convert the latest user question into a standalone question given the chat history. Don't answer the question, return the question and nothing else (no descriptive text)."""
+    contextualize_prompt = ChatPromptTemplate.from_messages(
+        [
+            ("system", contextualize_instructions),
+            ("placeholder", "{chat_history}"),
+            ("human", "{question}"),
+        ]
+    )
+    contextualize_question = contextualize_prompt | llm | StrOutputParser()
+
+    qa_instructions = (
+        """Answer the user question given the following context:\n\n{context}."""
+    )
+    qa_prompt = ChatPromptTemplate.from_messages(
+        [("system", qa_instructions), ("human", "{question}")]
+    )
+
+    u_retriever = get_retriever(
+        index_name="audio_test",
+        embedding_model="text-embedding-3-large",
+        dimension=256,
+        vector_db="qdrant",
+        top_k=3,
+    )
+
+    s_retriever = get_retriever(
+        index_name="csv_data",
+        embedding_model="text-embedding-3-large",
+        dimension=256,
+        vector_db="qdrant",
+        top_k=3,
+    )
+
+    @chain
+    def contextualize_if_needed(input_: dict) -> Runnable:
+        if input_.get("chat_history"):
+            return contextualize_question
+        else:
+            return RunnablePassthrough() | itemgetter("question")
+
+    @chain
+    def data_routing_with_llm(input_: dict) -> Runnable:
+        print("LLM Router.")
+        router_prompt = """Analyze the two data sets and decide which data set is more suitable for the question. Just answer the name of the data set.
+
+        Data Sets:
+
+        UNSTRUCTURED:
+        {unstrucutred_data_set}
+        
+        STRUCUTRED:
+        {structured_data_set}
+
+        Question: {question}
+        Output: 
+        """
+        router_template = ChatPromptTemplate.from_template(router_prompt)
+        router_chain = (
+            {
+                "question": RunnablePassthrough(),
+                "unstrucutred_data_set": u_retriever,
+                "structured_data_set": s_retriever,
+            }
+            | router_template
+            | llm
+            | StrOutputParser()
+        )
+        if router_chain.invoke(input_["question"]) == "STRUCTURED":
+            print("Routing to SQL Chain.")
+            return (
+                RunnablePassthrough.assign(query=write_query).assign(
+                    result=itemgetter("query") | execute_query
+                )
+                | sql_prompt
+            )
+        else:
+            print("Routing to RAG Chain.")
+            return {
+                "question": itemgetter("question"),
+                "context": itemgetter("question") | retriever,
+            } | qa_prompt
+
+    final_chain = (
+        {"question": contextualize_if_needed}
+        | data_routing_with_llm
+        | llm
+        | StrOutputParser()
     )
 
     return final_chain
@@ -258,7 +528,6 @@ def custom_chain(
     @chain
     def tool_call(input_: dict) -> Runnable:
         llm_result = input_.get("llm_result")
-        print(llm_result)
         if llm_result.tool_calls:
             test_instruction = """Answer the question using the tool response."""
             test_prompt = ChatPromptTemplate.from_messages(
