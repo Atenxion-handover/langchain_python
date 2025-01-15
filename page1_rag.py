@@ -244,66 +244,66 @@ for message in session.messages:
         else:
             st.markdown(message["content"])
 
-# if text_input:
-#     prompt = text_input
+if text_input:
+    prompt = text_input
 
-#     session.messages.append({"role": "user", "content": prompt})
-#     with st.chat_message("user"):
-#         st.markdown(prompt)
+    session.messages.append({"role": "user", "content": prompt})
+    with st.chat_message("user"):
+        st.markdown(prompt)
 
-#     # Display assistant response in chat message container
-#     with st.chat_message("assistant"):
-#         response = invoke_chain(prompt, None)
+    # Display assistant response in chat message container
+    with st.chat_message("assistant"):
+        response = invoke_chain(prompt, None)
 
-#         st.write_stream(response_generator(response))
+        st.write_stream(response_generator(response))
 
-#         # tokens = session.token_usage
-#         # context = session.context
-#         # left, right = st.columns(2, vertical_alignment="center")
-#         # with left:
-#         #     st.text(
-#         #         f'Input Tokens: {tokens["input_tokens"]}, Output Tokens: {tokens["output_tokens"]}'
-#         #     )
+        # tokens = session.token_usage
+        # context = session.context
+        # left, right = st.columns(2, vertical_alignment="center")
+        # with left:
+        #     st.text(
+        #         f'Input Tokens: {tokens["input_tokens"]}, Output Tokens: {tokens["output_tokens"]}'
+        #     )
 
-#         # """
-#         # with right:
-#         #     save_response_button = st.button(
-#         #         label="Save Response",
-#         #         key=f"save_response_button_{len(session.messages)}",
-#         #     )
+        # """
+        # with right:
+        #     save_response_button = st.button(
+        #         label="Save Response",
+        #         key=f"save_response_button_{len(session.messages)}",
+        #     )
 
-#         #     if save_response_button:
-#         #         with st.spinner("Saving..."):
-#         #             save_file_path = (
-#         #                 f"./responses/{session.index_name}_{session.vector_db}.txt"
-#         #             )
+        #     if save_response_button:
+        #         with st.spinner("Saving..."):
+        #             save_file_path = (
+        #                 f"./responses/{session.index_name}_{session.vector_db}.txt"
+        #             )
 
-#         #             save_response(
-#         #                 path=save_file_path,
-#         #                 question=prompt,
-#         #                 answer=response,
-#         #                 context=context,
-#         #             )
-#         #         st.success("Response Saved.")
-#         # """
+        #             save_response(
+        #                 path=save_file_path,
+        #                 question=prompt,
+        #                 answer=response,
+        #                 context=context,
+        #             )
+        #         st.success("Response Saved.")
+        # """
 
-#         # st.text(f"Sources:")
-#         # for i in range(0, len(context)):
-#         #     with st.popover(f"{context[i][1]}"):
-#         #         st.markdown(context[i][0])
+        # st.text(f"Sources:")
+        # for i in range(0, len(context)):
+        #     with st.popover(f"{context[i][1]}"):
+        #         st.markdown(context[i][0])
 
-#     # Add assistant response to chat history
-#     session.messages.append(
-#         {
-#             "role": "assistant",
-#             "content": {
-#                 "response": response,
-#                 "audio": None,
-#                 # "token_usage": tokens,
-#                 # "context": context,
-#             },
-#         }
-#     )
+    # Add assistant response to chat history
+    session.messages.append(
+        {
+            "role": "assistant",
+            "content": {
+                "response": response,
+                "audio": None,
+                # "token_usage": tokens,
+                # "context": context,
+            },
+        }
+    )
 
 elif len(audio_input) > 0:
     input_file_name = f"{uuid.uuid4()}.mp3"

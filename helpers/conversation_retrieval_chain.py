@@ -50,7 +50,6 @@ def create_conversational_retrieval_chain(
     llm: LanguageModelLike, retriever: RetrieverLike, instruction: Optional[str] = None
 ) -> Runnable:
     condense_question_system_template = """Given a chat history and the latest user question which might reference context in the chat history, formulate a standalone question which can be understood without the chat history. Do NOT answer the question, just reformulate it if needed and otherwise return it as is."""
-
     condense_question_prompt = ChatPromptTemplate.from_messages(
         [
             ("system", condense_question_system_template),
@@ -58,6 +57,7 @@ def create_conversational_retrieval_chain(
             ("human", "{input}"),
         ]
     )
+
     history_aware_retriever = create_history_aware_retriever(
         llm, retriever, condense_question_prompt
     )
@@ -120,12 +120,12 @@ def invoke_conversational_retrieval_chain(
         for doc in result["context"]
     ]
 
-    # token_usage = llm_result_handler.response
+    token_usage = llm_result_handler.response
 
     output = {
         "answer": answer,
         "source_documents": source_documents,
-        # "token_usage": token_usage,
+        "token_usage": token_usage,
     }
 
     if langfuse_handler:
@@ -554,7 +554,6 @@ def custom_chain(
         else:
             return RunnablePassthrough() | itemgetter("question")
 
-    # Pass input query to retriever
     retrieve_docs_chain = itemgetter("question") | retriever
 
     def format_docs(docs):
@@ -570,12 +569,12 @@ def custom_chain(
         question=itemgetter("question"),
     )
 
-    output_chain = llm_result_chain | tool_call | StrOutputParser()
+    tool_call_chain = llm_result_chain | tool_call | StrOutputParser()
 
-    final_chain = (
+    output_chain = (
         RunnablePassthrough.assign(question=contextualize_if_needed)
         .assign(context=retrieve_docs_chain)
-        .assign(answer=output_chain)
+        .assign(answer=tool_call_chain)
     )
 
-    return final_chain
+    return output_chain
