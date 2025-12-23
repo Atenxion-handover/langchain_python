@@ -578,3 +578,7 @@ def custom_chain(
     )
 
     return output_chain
+
+
+if __name__ == "__main__":
+    pass

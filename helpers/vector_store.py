@@ -19,6 +19,7 @@ from .custom_types import (
 )
 from .embedding_models import get_embedding_model
 from .config import Config
+import os
 
 
 def get_vector_store_instance(
@@ -35,11 +36,12 @@ def get_vector_store_instance(
     options = dict(zip(db_types, db_types))
 
     if vector_db not in options or vector_db == options["chromadb"]:
-        chroma_client = chromadb.HttpClient(host="localhost", port=8000)
         vector_store = Chroma(
             collection_name=index_name,
-            client=chroma_client,
             embedding_function=embedding,
+            chroma_cloud_api_key=os.getenv("CHROMA_API_KEY"),
+            tenant=os.getenv("CHROMA_TENANT"),
+            database=os.getenv("CHROMA_DATABASE"),
         )
     elif vector_db == options["elasticsearch"]:
         hybrid_search_type: _HYBRID_SEARCH_TYPES = kwargs.get(
