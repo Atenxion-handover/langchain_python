@@ -26,11 +26,7 @@ Runs a RAG + tool-calling workflow similar to `function_calling/function_calling
    - Executes tool calls when present and re-invokes the LLM with tool outputs.
 8. **Invoke the Chain**
    - Runs sample questions through the combined chain.
-9. **Get Sources**
-   - Formats retrieved documents as `SOURCE:...` + `PASSAGE:...` blocks.
-   - Prompts an LLM to return a comma-separated list of relevant sources (or `[NO SOURCES]`).
 
 ## Notes
 
 - The “Get Sources” step is a best-effort heuristic (it asks an LLM to infer provenance from passages + answer).
-
