@@ -15,8 +15,13 @@ Most notebooks load credentials from a local `.env` (via `python-dotenv` or `hel
 - `QDRANT_URL`, `QDRANT_API_KEY` (Qdrant-backed notebooks via helpers)
 - `MISTRAL_API_KEY` (Mistral function calling notebook)
 - `TAVILY_API_KEY` (CRAG notebook web-search tool)
+- `CHROMA_API_KEY` (Chroma Cloud API KEY)
+- `CHROMA_TENANT` (Chroma Cloud Tenant Id)
+- `CHROMA_DATABASE` (Chroma Cloud database name)
 
 Some notebooks also use local model runtimes (e.g. Ollama) and require you to have those installed and running.
+
+**Note: If the helper functions like get_llm, or data ingestion are not working, copy the implmentation from base_workflow.ipynb**
 
 ## Index
 
@@ -56,4 +61,3 @@ Some notebooks also use local model runtimes (e.g. Ollama) and require you to ha
 - `docs/notebooks/structured_unstructured_routing/structured_unstructured_routing.md` — Route a question to SQL vs RAG (LLM router and embedding router).
 - `docs/notebooks/structured_unstructured_routing/structured_unstructured_routing_with_two_store.md` — Same routing idea, plus a “two store” variant.
 - `docs/notebooks/structured_unstructured_routing/langgraph_routing.md` — Same routing idea implemented as a LangGraph state machine.
-
